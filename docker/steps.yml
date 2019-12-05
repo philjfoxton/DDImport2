@@ -1,21 +1,16 @@
-include:
-  - project: 'infrastructure/shared-pipelines'
-    ref: master
-    file: '/docker/variables.yml'
+before_script:
+  - docker login -u ${CI_REGISTRY_USER} -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
 
-  - project: 'infrastructure/shared-pipelines'
-    ref: master
-    file: '/docker/steps.yml'
+.docker_test:
+  script:
+    - docker build --build-arg ${CI_JOB_TOKEN} -t ${CI_REGISTRY_IMAGE} .
+  only:
+    - merge_requests
 
-stages:
-  - test_image
-  - push_image
-
-test:
-  stage: test_image
-  extends: .docker_test
-
-push:
-  stage: push_image
-  extends: .docker_push
-
+.docker_push:
+  script:
+    - docker build --build-arg ${CI_JOB_TOKEN} -t ${CI_REGISTRY_IMAGE} -t ${CI_REGISTRY_IMAGE}:${DOCKER_TAG} .
+    - docker push ${CI_REGISTRY_IMAGE}
+    - docker push ${CI_REGISTRY_IMAGE}:${DOCKER_TAG}
+  only:
+    - tags
