@@ -1,0 +1,21 @@
+include:
+  - project: 'infrastructure/shared-pipelines'
+    ref: master
+    file: '/docker/variables.yml'
+
+  - project: 'infrastructure/shared-pipelines'
+    ref: master
+    file: '/docker/steps.yml'
+
+stages:
+  - test_image
+  - push_image
+
+test:
+  stage: test_image
+  extends: .docker_test
+
+push:
+  stage: push_image
+  extends: .docker_push
+
