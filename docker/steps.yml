@@ -3,9 +3,15 @@
   image: suddengunter/dotnet-sdk:latest
   except:
     - master
-  stage: test
   script: 
     - cd src/
     - dotnet build .
     - dotnet test . --blame
     - dotnet-format --check
+.build_image:
+  script:
+    - cd src/
+    - $(aws ecr get-login --no-include-email --region eu-west-1)
+    - docker build -t $IMAGE_LOCATION .
+    - docker tag $IMAGE_LOCATION:latest 063523468743.dkr.ecr.eu-west-1.amazonaws.com/$IMAGE_LOCATION:$IMAGE_TAG
+    - docker push 063523468743.dkr.ecr.eu-west-1.amazonaws.com/$IMAGE_LOCATION:$IMAGE_TAG
