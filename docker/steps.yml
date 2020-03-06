@@ -12,6 +12,24 @@
   script:
     - cd src/
     - $(aws ecr get-login --no-include-email --region eu-west-1)
-    - docker build -t $IMAGE_LOCATION .
-    - docker tag $IMAGE_LOCATION:latest 063523468743.dkr.ecr.eu-west-1.amazonaws.com/$IMAGE_LOCATION:$IMAGE_TAG
-    - docker push 063523468743.dkr.ecr.eu-west-1.amazonaws.com/$IMAGE_LOCATION:$IMAGE_TAG
+    - docker build -t $IMAGE_NAME .
+    - docker tag $IMAGE_NAME:latest 063523468743.dkr.ecr.eu-west-1.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG
+    - docker push 063523468743.dkr.ecr.eu-west-1.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG
+.deploy_dev:
+  script:
+    - aws eks --region eu-west-1 update-kubeconfig --name pfm-eks-stage
+    - helm upgrade $SERVICE_NAME ./helm --set image.tag=$IMAGE_TAG --namespace dev
+.deploy_stage:
+  script:
+    - aws eks --region eu-west-1 update-kubeconfig --name pfm-eks-stage
+    - helm upgrade $SERVICE_NAME ./helm --set image.tag=$IMAGE_TAG  --set environment=$ENV_NAME --namespace stage 
+.rollback_dev:
+  script:
+    - echo ${ENV_NAME}
+    - aws eks --region eu-west-1 update-kubeconfig --name pfm-eks-stage
+    - helm rollback $SERVICE_NAME 0 --namespace dev
+.rollback_stage:
+  script:
+    - echo ${ENV_NAME}
+    - aws eks --region eu-west-1 update-kubeconfig --name pfm-eks-stage
+    - helm rollback $SERVICE_NAME 0 --namespace stage 
