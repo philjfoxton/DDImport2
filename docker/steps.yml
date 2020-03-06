@@ -1,6 +1,6 @@
 
 .test_code:
-  image: suddengunter/dotnet-sdk:latest
+  image: registry.gitlab.com/dashdevs/pfm/infrastructure/docker-images/gitlab-ci:test
   except:
     - master
   script: 
