@@ -1,4 +1,3 @@
-
 .integration_test:
   image: registry.gitlab.com/dashdevs/pfm/infrastructure/docker-images/gitlab-ci:test
   services:
@@ -16,7 +15,7 @@
   script: 
     - cd src/
     - dotnet build .
-    - dotnet test . --blame
+    - dotnet test --filter Category=Unit --blame
     - dotnet-format --check
 .build_image:
   script:
