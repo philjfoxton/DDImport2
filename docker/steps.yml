@@ -1,70 +1,44 @@
-include:
-  - project: 'DashDevs/PFM/infrastructure/shared-pipelines'
-    ref: master
-    file: '/docker/steps.yml'
-stages: 
-  - test
-  - integration_test
-  - build
-  - deploy_dev
-  - deploy_stage
-  - rollback
-image: registry.gitlab.com/dashdevs/pfm/infrastructure/docker-images/gitlab-ci:build-deploy  
-.template: &ireland-runner
-  tags: 
-    - docker_runner_ireland
-  before_script:
-    - export IMAGE_TAG="${CI_COMMIT_SHORT_SHA}"
-    - echo "Image tag is="$IMAGE_TAG  
-'Test code':
-  except: 
-    - master
-  stage: test
-  extends: .test_code
-  <<: *ireland-runner
-'Test code integration':
-  except: 
-    - master
-  stage: integration_test
-  extends: .integration_test
-  <<: *ireland-runner  
-'Build containers':
-  only:
-    - master
-  stage: build
-  extends: .build_image
+.integration_test:
+  image: registry.gitlab.com/dashdevs/pfm/infrastructure/docker-images/gitlab-ci:test
+  services:
+  - mongo
   variables:
-    IMAGE_NAME: "pfm/obpexporter.service"
-  <<: *ireland-runner 
-'DEV Deploy containers':
-  only: 
+    MONGO_INITDB_ROOT_USERNAME: $MONGODB_USER
+    MONGO_INITDB_ROOT_PASSWORD: $MONGODB_PASS
+  script: 
+    - cd src/
+    - dotnet test --filter Category=Integration --blame
+.test_code:
+  image: registry.gitlab.com/dashdevs/pfm/infrastructure/docker-images/gitlab-ci:test
+  except:
     - master
-  stage: deploy_dev
-  extends: .deploy_dev
-  variables:
-    SERVICE_NAME: obp-exporter-service
-  <<: *ireland-runner        
-'STAGE Deploy containers':
-  only:
-    - master
-  stage: deploy_stage
-  extends: .deploy_stage
-  variables:
-    ENV_NAME: Staging
-    SERVICE_NAME: obp-exporter-service
-  <<: *ireland-runner  
-  when: manual
-'Rollback to previous state dev':
-  stage: rollback
-  extends: .rollback_dev
-  variables:
-    SERVICE_NAME: obp-exporter-service
-  when: manual
-  <<: *ireland-runner  
-'Rollback to previous state stage':
-  stage: rollback
-  extends: .rollback_stage
-  variables:
-    SERVICE_NAME: obp-exporter-service
-  when: manual
-  <<: *ireland-runner
+  script: 
+    - cd src/
+    - dotnet build .
+    - dotnet test --filter Category=Unit --blame
+    - dotnet-format --check
+.build_image:
+  script:
+    - cd src/
+    - $(aws ecr get-login --no-include-email --region eu-west-1)
+    - docker build -t $IMAGE_NAME .
+    - docker tag $IMAGE_NAME:latest 063523468743.dkr.ecr.eu-west-1.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG
+    - docker push 063523468743.dkr.ecr.eu-west-1.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG
+.deploy_dev:
+  script:
+    - aws eks --region eu-west-1 update-kubeconfig --name pfm-eks-stage
+    - helm upgrade $SERVICE_NAME ./helm --set image.tag=$IMAGE_TAG --namespace dev
+.deploy_stage:
+  script:
+    - aws eks --region eu-west-1 update-kubeconfig --name pfm-eks-stage
+    - helm upgrade $SERVICE_NAME ./helm --set image.tag=$IMAGE_TAG  --set environment=$ENV_NAME --namespace stage 
+.rollback_dev:
+  script:
+    - echo ${ENV_NAME}
+    - aws eks --region eu-west-1 update-kubeconfig --name pfm-eks-stage
+    - helm rollback $SERVICE_NAME 0 --namespace dev
+.rollback_stage:
+  script:
+    - echo ${ENV_NAME}
+    - aws eks --region eu-west-1 update-kubeconfig --name pfm-eks-stage
+    - helm rollback $SERVICE_NAME 0 --namespace stage 
