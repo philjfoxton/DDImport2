@@ -1,0 +1,18 @@
+.integration_test:
+  image: registry.gitlab.com/dashdevs/pfm/infrastructure/docker-images/gitlab-ci:test
+  services:
+    - mongo
+  variables:
+    MONGO_INITDB_ROOT_USERNAME: $MONGODB_USER
+    MONGO_INITDB_ROOT_PASSWORD: $MONGODB_PASS
+  script:
+    - cd src/
+    - dotnet test --filter Category=Integration --blame
+
+.test_code:
+  image: registry.gitlab.com/dashdevs/pfm/infrastructure/docker-images/gitlab-ci:test
+  script:
+    - cd src/
+    - dotnet build .
+    - dotnet test --filter Category=Unit --blame
+    - dotnet-format --check

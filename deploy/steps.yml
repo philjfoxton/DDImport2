@@ -1,0 +1,21 @@
+.deploy_dev:
+  script:
+    - aws eks --region eu-west-1 update-kubeconfig --name pfm-eks-stage
+    - helm upgrade $SERVICE_NAME ./helm --set image.tag=$IMAGE_TAG --namespace dev
+
+.deploy_stage:
+  script:
+    - aws eks --region eu-west-1 update-kubeconfig --name pfm-eks-stage
+    - helm upgrade $SERVICE_NAME ./helm --set image.tag=$IMAGE_TAG  --set environment=$ENV_NAME --set base_url=$BASE_URL --namespace stage
+
+.rollback_dev:
+  script:
+    - echo ${ENV_NAME}
+    - aws eks --region eu-west-1 update-kubeconfig --name pfm-eks-stage
+    - helm rollback $SERVICE_NAME 0 --namespace dev
+
+.rollback_stage:
+  script:
+    - echo ${ENV_NAME}
+    - aws eks --region eu-west-1 update-kubeconfig --name pfm-eks-stage
+    - helm rollback $SERVICE_NAME 0 --namespace stage
