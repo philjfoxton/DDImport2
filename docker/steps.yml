@@ -9,3 +9,17 @@
     - $(aws ecr get-login --no-include-email --region eu-west-1)
     - docker build -f ${DOCKERFILE} -t $REPOSITORY/$IMAGE_NAME:$IMAGE_TAG $BUILD_DIR
     - docker push $REPOSITORY/$IMAGE_NAME:$IMAGE_TAG
+
+.share_image:
+  variables:
+    TARGET_ACCOUNT: ""
+    SOURCE_ACCOUNT: ""
+    TARGET_ACCOUNT_REGION: "eu-west-1"
+    SOURCE_ACCOUNT_REGION: "eu-west-1"
+    TARGET_ACCOUNT_REGISTRY: ""
+  script:
+    - $(aws ecr get-login --registry-ids $SOURCE_ACCOUNT --no-include-email --region $SOURCE_ACCOUNT_REGION)
+    - $(aws ecr get-login --registry-ids $TARGET_ACCOUNT --no-include-email --region $TARGET_ACCOUNT_REGION)
+    - docker pull $REPOSITORY/$IMAGE_NAME:$IMAGE_TAG
+    - docker tag $REPOSITORY/$IMAGE_NAME:$IMAGE_TAG $TARGET_ACCOUNT/$IMAGE_NAME:$IMAGE_TAG
+    - docker push $TARGET_ACCOUNT/$IMAGE_NAME:$IMAGE_TAG
