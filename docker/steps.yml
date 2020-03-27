@@ -20,6 +20,6 @@
   script:
     - $(aws ecr get-login --registry-ids $SOURCE_ACCOUNT --no-include-email --region $SOURCE_ACCOUNT_REGION)
     - $(aws ecr get-login --registry-ids $TARGET_ACCOUNT --no-include-email --region $TARGET_ACCOUNT_REGION)
-    - docker pull $REPOSITORY/$IMAGE_NAME:$IMAGE_TAG
+    - docker build -f ${DOCKERFILE} -t $REPOSITORY/$IMAGE_NAME:$IMAGE_TAG $BUILD_DIR
     - docker tag $REPOSITORY/$IMAGE_NAME:$IMAGE_TAG $TARGET_ACCOUNT/$IMAGE_NAME:$IMAGE_TAG
     - docker push $TARGET_ACCOUNT/$IMAGE_NAME:$IMAGE_TAG
