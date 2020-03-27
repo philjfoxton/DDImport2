@@ -1,25 +1,12 @@
+before_script:
+  - docker login -u ${CI_REGISTRY_USER} -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+
 .test_image:
   script:
-    - docker build -f ${DOCKERFILE} -t $REPOSITORY/$IMAGE_NAME $BUILD_DIR
+    - docker build -f ${DOCKERFILE} -t ${CI_REGISTRY_IMAGE} $BUILD_DIR
   only:
     - merge_requests
 
 .push_image:
   script:
-    - $(aws ecr get-login --no-include-email --region eu-west-1)
-    - docker build -f ${DOCKERFILE} -t $REPOSITORY/$IMAGE_NAME:$IMAGE_TAG $BUILD_DIR
-    - docker push $REPOSITORY/$IMAGE_NAME:$IMAGE_TAG
-
-.share_image:
-  variables:
-    TARGET_ACCOUNT: ""
-    SOURCE_ACCOUNT: ""
-    TARGET_ACCOUNT_REGION: "eu-west-1"
-    SOURCE_ACCOUNT_REGION: "eu-west-1"
-    TARGET_ACCOUNT_REGISTRY: ""
-  script:
-    - $(aws ecr get-login --registry-ids $SOURCE_ACCOUNT --no-include-email --region $SOURCE_ACCOUNT_REGION)
-    - $(aws ecr get-login --registry-ids $TARGET_ACCOUNT --no-include-email --region $TARGET_ACCOUNT_REGION)
-    - docker build -f ${DOCKERFILE} -t $REPOSITORY/$IMAGE_NAME:$IMAGE_TAG $BUILD_DIR
-    - docker tag $REPOSITORY/$IMAGE_NAME:$IMAGE_TAG $TARGET_ACCOUNT_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
-    - docker push $TARGET_ACCOUNT_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+    - docker build -f ${DOCKERFILE} -t ${CI_REGISTRY_IMAGE}:${DOCKER_TAG} $BUILD_DIR
