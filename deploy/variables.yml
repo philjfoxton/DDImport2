@@ -3,3 +3,5 @@ variables:
   NAMESPACE: ""
   ENV_NAME: ""
   SERVICE_NAME: ""
+  HELM_PATH: "./helm"
+  HELM_VALUES: "./helm/values.yaml"
