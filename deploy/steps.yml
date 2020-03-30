@@ -13,5 +13,6 @@
     - helm rollback $SERVICE_NAME 0 --namespace stage
 
 .rollback:
+  script:
   - echo ${ENV_NAME}
   - helm rollback $SERVICE_NAME 0 --namespace ${NAMESPACE}
