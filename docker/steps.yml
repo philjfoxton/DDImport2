@@ -9,5 +9,5 @@ before_script:
 
 .push_image:
   script:
-    - docker build -f ${DOCKERFILE} -t ${CI_REGISTRY_IMAGE}:${DOCKER_TAG} --build-arg PIPELINE_ID=${PIPELINE_ID} $BUILD_DIR
+    - docker build -f ${DOCKERFILE} -t ${CI_REGISTRY_IMAGE}:${DOCKER_TAG} -e PIPELINE_ID=${PIPELINE_ID} $BUILD_DIR
     - docker push ${CI_REGISTRY_IMAGE}:${DOCKER_TAG}
