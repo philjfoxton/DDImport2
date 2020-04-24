@@ -8,7 +8,7 @@
   before_script:
     - cd src/
   script:
-    - dotnet test --filter Category=Integration --blame
+    - dotnet test --filter Category=Integration /p:CollectCoverage=true
 
 .test_code:
   image: registry.gitlab.com/dashdevs/pfm/infrastructure/docker-images/gitlab-ci:test
@@ -16,5 +16,5 @@
     - cd src/
   script:
     - dotnet build .
-    - dotnet test --filter Category=Unit --blame
+    - dotnet test --filter Category=Unit /p:CollectCoverage=true
     - dotnet-format --check
