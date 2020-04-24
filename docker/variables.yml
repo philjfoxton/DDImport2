@@ -4,5 +4,5 @@ variables:
   DOCKERFILE: "Dockerfile"
   EXTRA_ARG: ""
   BUILD_DIR: "."
-  PIPELINE_ID: ${CI_PIPELINE_IID}
+  PIPELINE_ID: ${CI_PIPELINE_ID}
 
